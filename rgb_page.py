@@ -1,6 +1,8 @@
 import tkinter as tk
 from tkinter import messagebox
 import re
+import subprocess
+
 
 # Supported color names and their RGB equivalents
 COMPATIBLE_COLORS_RGB = {
@@ -78,6 +80,12 @@ def open_rgb_page():
         mixed_rgb_str = f"RGB({mixed_rgb[0]}, {mixed_rgb[1]}, {mixed_rgb[2]})"
         center_color_label.config(bg=f"#{mixed_rgb[0]:02x}{mixed_rgb[1]:02x}{mixed_rgb[2]:02x}")
         center_rgb_label.config(text=mixed_rgb_str)
+        
+    def go_back():
+        """Close the current window and open the General Color Mixer."""
+        rgb_window.destroy()  # Close the RGB page
+        subprocess.run(["python", "general_color_mixer.py"])  # Open the General Color Mixer
+
 
     # GUI Setup
     rgb_window = tk.Tk()
@@ -134,7 +142,7 @@ def open_rgb_page():
         potency_labels.append(potency_label)
 
     # Back Button
-    back_button = tk.Button(rgb_window, text="Back", command=rgb_window.destroy)
+    back_button = tk.Button(rgb_window, text="Back", command=go_back)
     back_button.grid(row=1, column=0, columnspan=2, pady=10)
 
     rgb_window.mainloop()

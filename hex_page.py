@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 import re
+import subprocess
 
 # Supported color names and their HEX equivalents
 COMPATIBLE_COLORS_HEX = {
@@ -78,6 +79,11 @@ def open_hex_page():
         mixed_hex = f"#{mixed_rgb[0]:02x}{mixed_rgb[1]:02x}{mixed_rgb[2]:02x}"
         center_color_label.config(bg=mixed_hex)
         center_hex_label.config(text=mixed_hex)
+        
+    def go_back():
+        """Close the current window and open the General Color Mixer."""
+        hex_window.destroy()  # Close the RGB page
+        subprocess.run(["python", "general_color_mixer.py"])  # Open the General Color Mixer
 
     # GUI Setup
     hex_window = tk.Tk()
@@ -134,7 +140,7 @@ def open_hex_page():
         potency_labels.append(potency_label)
 
     # Back Button
-    back_button = tk.Button(hex_window, text="Back", command=hex_window.destroy)
+    back_button = tk.Button(hex_window, text="Back", command=go_back)
     back_button.grid(row=1, column=0, columnspan=2, pady=10)
 
     hex_window.mainloop()

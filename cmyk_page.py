@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
 import re
+import subprocess
 
 # Define supported color names and their CMYK equivalents
 COMPATIBLE_COLORS_CMYK = {
@@ -85,6 +86,11 @@ def open_cmyk_page():
         mixed_cmyk = calculate_mixed_cmyk(colors_and_potencies)
         center_color_label.config(bg=f"#{cmyk_to_rgb(*mixed_cmyk)[0]:02x}{cmyk_to_rgb(*mixed_cmyk)[1]:02x}{cmyk_to_rgb(*mixed_cmyk)[2]:02x}")
         center_cmyk_label.config(text=f"CMYK({mixed_cmyk[0]}, {mixed_cmyk[1]}, {mixed_cmyk[2]}, {mixed_cmyk[3]})")
+        
+    def go_back():
+        """Close the current window and open the General Color Mixer."""
+        cmyk_window.destroy()  # Close the RGB page
+        subprocess.run(["python", "general_color_mixer.py"])  # Open the General Color Mixer
 
     # GUI Setup
     cmyk_window = tk.Tk()
@@ -141,7 +147,7 @@ def open_cmyk_page():
         potency_labels.append(potency_label)
 
     # Back Button
-    back_button = tk.Button(cmyk_window, text="Back", command=cmyk_window.destroy)
+    back_button = tk.Button(cmyk_window, text="Back", command=go_back)
     back_button.grid(row=1, column=0, columnspan=2, pady=10)
 
     cmyk_window.mainloop()
