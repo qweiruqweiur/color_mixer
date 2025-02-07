@@ -17,9 +17,9 @@ def open_color_mixer():
 def open_color_palette():
     subprocess.run(["python", "color_palette_page.py"])
 
-def open_file_features():
-    messagebox.showinfo("Feature Coming Soon", "File Features will be implemented later!")
-
+def open_external_data():
+    subprocess.run(["python", "external_data.py"])
+    
 # Main function to open the Home Page
 def open_home_page():
     # GUI Setup
@@ -35,7 +35,7 @@ def open_home_page():
     nav_frame.pack()
 
     tk.Button(nav_frame, text="Tools", command=open_tools_page).pack(side=tk.LEFT, padx=10)
-    tk.Button(nav_frame, text="External Data", state="disabled").pack(side=tk.LEFT, padx=10)
+    tk.Button(nav_frame, text="External Data", command=open_external_data).pack(side=tk.LEFT, padx=10)
     tk.Button(nav_frame, text="Settings", state="disabled").pack(side=tk.LEFT, padx=10)
 
     # Main Section
@@ -113,7 +113,7 @@ def open_home_page():
         files_image_label = tk.Label(files_frame, image=files_photo, cursor="hand2")
         files_image_label.image = files_photo
         files_image_label.pack()
-        files_image_label.bind("<Button-1>", lambda event: open_file_features())
+        files_image_label.bind("<Button-1>", lambda event: open_external_data())
 
     home_window.mainloop()
 
