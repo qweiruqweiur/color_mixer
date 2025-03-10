@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 import re
 import subprocess
-
+import os
 
 # Supported color names and their RGB equivalents
 COMPATIBLE_COLORS_RGB = {
@@ -18,12 +18,12 @@ COMPATIBLE_COLORS_RGB = {
     "white": (255, 255, 255),
 }
 
+TEMP_FILE = "temp_saved_colors.txt"
+
 # Parse user input for RGB or color name
 def parse_rgb_input(input_text):
-    # Check if it's a supported color name
     if input_text.lower() in COMPATIBLE_COLORS_RGB:
         return COMPATIBLE_COLORS_RGB[input_text.lower()]
-    # Check if it's an RGB value in the format (R, G, B)
     match = re.match(r"\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})\)", input_text)
     if match:
         r, g, b = map(int, match.groups())
@@ -41,36 +41,25 @@ def calculate_mixed_rgb(colors_and_potencies):
         total_potency += potency
     if total_potency == 0:
         return (255, 255, 255)  # Default to white if no colors
-    avg_red = red_sum // total_potency
-    avg_green = green_sum // total_potency
-    avg_blue = blue_sum // total_potency
-    return avg_red, avg_green, avg_blue
+    return (red_sum // total_potency, green_sum // total_potency, blue_sum // total_potency)
 
 # Main function to open the RGB page
 def open_rgb_page():
     def update_cell(index, increase=None):
-        # Get user input and parse it
         rgb_input = inputs[index].get()
         rgb_values = parse_rgb_input(rgb_input)
         if rgb_values:
-            # Handle potency adjustment
-            if increase is True and potencies[index].get() < 5:  # Increase potency
+            if increase is True and potencies[index].get() < 5:
                 potencies[index].set(potencies[index].get() + 1)
-            elif increase is False and potencies[index].get() > 1:  # Decrease potency
+            elif increase is False and potencies[index].get() > 1:
                 potencies[index].set(potencies[index].get() - 1)
-
-            # Update cell background color
             cells[index].config(bg=f"#{rgb_values[0]:02x}{rgb_values[1]:02x}{rgb_values[2]:02x}")
             potency_labels[index].config(text=f"{potencies[index].get()}")
             update_center_color()
         else:
-            messagebox.showerror(
-                "Invalid Input",
-                "Please enter a valid color name or RGB value (e.g., red or (255, 0, 0))."
-            )
+            messagebox.showerror("Invalid Input", "Enter a valid color name or RGB value (e.g., red or (255, 0, 0)).")
 
     def update_center_color():
-        # Calculate mixed color from all inputs
         colors_and_potencies = [
             (parse_rgb_input(inputs[i].get()), potencies[i].get())
             for i in range(10)
@@ -80,12 +69,41 @@ def open_rgb_page():
         mixed_rgb_str = f"RGB({mixed_rgb[0]}, {mixed_rgb[1]}, {mixed_rgb[2]})"
         center_color_label.config(bg=f"#{mixed_rgb[0]:02x}{mixed_rgb[1]:02x}{mixed_rgb[2]:02x}")
         center_rgb_label.config(text=mixed_rgb_str)
-        
-    def go_back():
-        """Close the current window and open the General Color Mixer."""
-        rgb_window.destroy()  # Close the RGB page
-        subprocess.run(["python", "general_color_mixer.py"])  # Open the General Color Mixer
 
+    def save_color():
+        """Save the currently mixed color to a temporary file."""
+        color_text = center_rgb_label.cget("text")
+
+        if "RGB" in color_text:
+            saved_colors = load_saved_colors()
+
+            if color_text in saved_colors:
+                messagebox.showwarning("Already Saved", f"Color {color_text} is already saved.")
+                return
+
+            with open(TEMP_FILE, "a") as file:
+                file.write(color_text + "\n")
+
+            messagebox.showinfo("Saved!", f"Color {color_text} saved successfully!")
+        else:
+            messagebox.showerror("Error", "No valid color to save!")
+
+    def load_saved_colors():
+        """Load saved colors from the temporary file."""
+        if os.path.exists(TEMP_FILE):
+            with open(TEMP_FILE, "r") as file:
+                return [line.strip() for line in file.readlines()]
+        return []
+
+    def delete_temp_file():
+        """Delete the temporary file when the program exits."""
+        if os.path.exists(TEMP_FILE):
+            os.remove(TEMP_FILE)
+
+    def go_back():
+        """Go back to the General Color Mixer."""
+        rgb_window.destroy()
+        subprocess.run(["python", "general_color_mixer.py"])
 
     # GUI Setup
     rgb_window = tk.Tk()
@@ -101,6 +119,10 @@ def open_rgb_page():
     center_rgb_label = tk.Label(center_frame, text="RGB(255, 255, 255)")
     center_rgb_label.pack(pady=5)
 
+    # Save Button
+    save_button = tk.Button(center_frame, text="Save Color", command=save_color)
+    save_button.pack(pady=5)
+
     # Color Wheel and Inputs
     wheel_frame = tk.Frame(rgb_window)
     wheel_frame.grid(row=0, column=1, padx=10, pady=10)
@@ -114,29 +136,24 @@ def open_rgb_page():
         frame = tk.Frame(wheel_frame)
         frame.grid(row=i // 5, column=i % 5, padx=5, pady=5)
 
-        # Display area
         cell = tk.Label(frame, width=10, height=5, bg="white")
         cell.pack()
         cells.append(cell)
 
-        # Input field
         input_field = tk.Entry(frame, width=15)
         input_field.pack()
         inputs.append(input_field)
         input_field.bind("<Return>", lambda event, idx=i: update_cell(idx))
 
-        # Potency slider
         potency = tk.IntVar(value=1)
         potencies.append(potency)
 
-        # "+" and "-" Buttons
         plus_button = tk.Button(frame, text="+", command=lambda idx=i: update_cell(idx, True))
         plus_button.pack(side=tk.LEFT, padx=2)
 
         minus_button = tk.Button(frame, text="-", command=lambda idx=i: update_cell(idx, False))
         minus_button.pack(side=tk.RIGHT, padx=2)
 
-        # Potency label
         potency_label = tk.Label(frame, text="1")
         potency_label.pack()
         potency_labels.append(potency_label)
@@ -145,6 +162,7 @@ def open_rgb_page():
     back_button = tk.Button(rgb_window, text="Back", command=go_back)
     back_button.grid(row=1, column=0, columnspan=2, pady=10)
 
+    rgb_window.protocol("WM_DELETE_WINDOW", delete_temp_file)  # Delete temp file when closed
     rgb_window.mainloop()
 
 # Run RGB Page

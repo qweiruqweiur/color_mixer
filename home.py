@@ -1,5 +1,6 @@
 import tkinter as tk
 import subprocess
+import os
 from PIL import Image, ImageTk  # Requires Pillow library
 
 # Image paths
@@ -7,9 +8,11 @@ MIXER_IMAGE_PATH = "/Users/rohanshankar/Documents/Coding/CompSciHL/color_mixer/m
 PALETTE_IMAGE_PATH = "/Users/rohanshankar/Documents/Coding/CompSciHL/color_mixer/palette.jpeg"
 FILES_IMAGE_PATH = "/Users/rohanshankar/Documents/Coding/CompSciHL/color_mixer/files.png"
 
+TEMP_FILE = "temp_saved_colors.txt"
+
 # Functions to open other pages
 def open_tools_page():
-    subprocess.run(["python", "tools.py"])  # Corrected filename
+    subprocess.run(["python", "tools.py"])
 
 def open_color_mixer():
     subprocess.run(["python", "general_color_mixer.py"])
@@ -20,6 +23,17 @@ def open_color_palette():
 def open_external_data():
     subprocess.run(["python", "external_data.py"])
     
+def open_appearance_page():
+    """Opens the Appearance Settings page."""
+    subprocess.run(["python", "appearance.py"])
+
+
+# Function to clear the temp file
+def clear_temp_file():
+    """Clears the contents of the temp file when the home page is closed."""
+    if os.path.exists(TEMP_FILE):
+        open(TEMP_FILE, "w").close()  # Overwrites the file with nothing (clears it)
+
 # Main function to open the Home Page
 def open_home_page():
     # GUI Setup
@@ -36,7 +50,7 @@ def open_home_page():
 
     tk.Button(nav_frame, text="Tools", command=open_tools_page).pack(side=tk.LEFT, padx=10)
     tk.Button(nav_frame, text="External Data", command=open_external_data).pack(side=tk.LEFT, padx=10)
-    tk.Button(nav_frame, text="Settings", state="disabled").pack(side=tk.LEFT, padx=10)
+    tk.Button(nav_frame, text="Settings", command=open_appearance_page).pack(side=tk.LEFT, padx=10)
 
     # Main Section
     main_frame = tk.Frame(home_window)
@@ -50,7 +64,7 @@ def open_home_page():
 
     # Load color wheel image
     try:
-        color_wheel_img = Image.open(MIXER_IMAGE_PATH).resize((250, 250))  # Placeholder: Use correct path for color wheel
+        color_wheel_img = Image.open(MIXER_IMAGE_PATH).resize((250, 250))
         color_wheel_photo = ImageTk.PhotoImage(color_wheel_img)
         color_wheel_label = tk.Label(main_frame, image=color_wheel_photo)
         color_wheel_label.image = color_wheel_photo
@@ -114,6 +128,9 @@ def open_home_page():
         files_image_label.image = files_photo
         files_image_label.pack()
         files_image_label.bind("<Button-1>", lambda event: open_external_data())
+
+    # Ensure temp file is cleared when window is closed
+    home_window.protocol("WM_DELETE_WINDOW", clear_temp_file)
 
     home_window.mainloop()
 
