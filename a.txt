@@ -1,0 +1,2 @@
+{"name": "Burnt Orange", "sectors": [{"color": "#FA1230", "potency": 1}, {"color": "#DD5502", "potency": 10}]}
+RGB(223, 78, 6)
